@@ -32,7 +32,7 @@ class UserProfileAPI(APIView):
     @method_decorator(ensure_csrf_cookie)
     def get(self, request, **kwargs):
         """
-        判断是否登录， 若登录返回用户信息
+        Determine whether to log in, if log in returns user information
         """
         user = request.user
         if not user.is_authenticated:

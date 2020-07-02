@@ -52,12 +52,12 @@ class JSONResponse(object):
 
 class APIView(View):
     """
-    Django view的父类, 和django-rest-framework的用法基本一致
-     - request.data获取解析之后的json或者urlencoded数据, dict类型
-     - self.success, self.error和self.invalid_serializer可以根据业需求修改,
-        写到父类中是为了不同的人开发写法统一,不再使用自己的success/error格式
-     - self.response 返回一个django HttpResponse, 具体在self.response_class中实现
-     - parse请求的类需要定义在request_parser中, 目前只支持json和urlencoded的类型, 用来解析请求的数据
+    Django view의 부모 클래스는 기본적으로 django-rest-framework와 동일합니다.
+     - 구문 분석 후 json 또는 urlencoded 데이터를 얻기위한 request.data, dict 유형
+     - self.success, self.error 및 self.invalid_serializer는 산업 요구에 따라 수정 될 수 있으며,
+     부모 클래스에 작성된 것은 다른 사람들이 통합 된 작성 방법을 개발하고 더 이상 자신의 success/error 형식을 사용하지 않는 것입니다
+     - self.response는 django HttpResponse를 반환하며, 특히 self.response_class에서 구현됩니다.
+     - parse 클래스는 request_parser에 정의되어야하며 현재 요청 된 데이터를 구문 분석하는 데 사용되는 json 및 urlencoded 유형 만 지원합니다.
     """
     request_parsers = (JSONParser, URLEncodedParser)
     response_class = JSONResponse
@@ -112,9 +112,9 @@ class APIView(View):
 
     def paginate_data(self, request, query_set, object_serializer=None):
         """
-        :param request: django的request
-        :param query_set: django model的query set或者其他list like objects
-        :param object_serializer: 用来序列化query set, 如果为None, 则直接对query set切片
+        :param request: django의 request
+        :param query_set: django model의 query set 또는 다른 list like objects
+        :param object_serializer: query set for serialization, if None, then slice the query set directly
         :return:
         """
         try:

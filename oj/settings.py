@@ -32,9 +32,10 @@ VENDOR_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
     'django_dramatiq',
     'django_dbconn_retry',
+    'rest_framework',
+    'drf_yasg',
 ]
 
 if production_env:
@@ -108,7 +109,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ko-kr'
 
 TIME_ZONE = 'UTC'
 
@@ -187,6 +188,7 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     )
 }
 
