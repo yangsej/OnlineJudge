@@ -40,14 +40,14 @@ class SMTPAPI(APIView):
         return self.success(smtp)
 
     @super_admin_required
-    @validate_serializer(CreateSMTPConfigSerializer)
     def post(self, request):
+        self.serializer_class = CreateSMTPConfigSerializer
         SysOptions.smtp_config = request.data
         return self.success()
 
     @super_admin_required
-    @validate_serializer(EditSMTPConfigSerializer)
     def put(self, request):
+        self.serializer_class = EditSMTPConfigSerializer
         smtp = SysOptions.smtp_config
         data = request.data
         for item in ["server", "port", "email", "tls"]:
@@ -60,8 +60,8 @@ class SMTPAPI(APIView):
 
 class SMTPTestAPI(APIView):
     @super_admin_required
-    @validate_serializer(TestSMTPConfigSerializer)
     def post(self, request):
+        self.serializer_class = TestSMTPConfigSerializer
         if not SysOptions.smtp_config:
             return self.error("Please setup SMTP config at first")
         try:
@@ -95,8 +95,8 @@ class WebsiteConfigAPI(APIView):
         return self.success(ret)
 
     @super_admin_required
-    @validate_serializer(CreateEditWebsiteConfigSerializer)
     def post(self, request):
+        self.serializer_class = CreateEditWebsiteConfigSerializer
         for k, v in request.data.items():
             if k == "website_footer":
                 with XSSHtml() as parser:
@@ -119,9 +119,9 @@ class JudgeServerAPI(APIView):
             JudgeServer.objects.filter(hostname=hostname).delete()
         return self.success()
 
-    @validate_serializer(EditJudgeServerSerializer)
     @super_admin_required
     def put(self, request):
+        self.serializer_class = EditJudgeServerSerializer
         is_disabled = request.data.get("is_disabled", False)
         JudgeServer.objects.filter(id=request.data["id"]).update(is_disabled=is_disabled)
         if not is_disabled:
@@ -130,8 +130,8 @@ class JudgeServerAPI(APIView):
 
 
 class JudgeServerHeartbeatAPI(CSRFExemptAPIView):
-    @validate_serializer(JudgeServerHeartbeatSerializer)
     def post(self, request):
+        self.serializer_class = JudgeServerHeartbeatSerializer
         data = request.data
         client_token = request.META.get("HTTP_X_JUDGE_SERVER_TOKEN")
         if hashlib.sha256(SysOptions.judge_server_token.encode("utf-8")).hexdigest() != client_token:

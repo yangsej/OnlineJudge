@@ -45,9 +45,9 @@ class SubmissionAPI(APIView):
                 if not any(user_ip in ipaddress.ip_network(cidr, strict=False) for cidr in contest.allowed_ip_ranges):
                     return self.error("Your IP is not allowed in this contest")
 
-    @validate_serializer(CreateSubmissionSerializer)
     @login_required
     def post(self, request):
+        self.serializer_class = CreateSubmissionSerializer
         data = request.data
         hide_id = False
         if data.get("contest_id"):
@@ -106,9 +106,9 @@ class SubmissionAPI(APIView):
         submission_data["can_unshare"] = submission.check_user_permission(request.user, check_share=False)
         return self.success(submission_data)
 
-    @validate_serializer(ShareSubmissionSerializer)
     @login_required
     def put(self, request):
+        self.serializer_class = ShareSubmissionSerializer
         """
         share submission
         """

@@ -22,8 +22,8 @@ from ..serializers import (ContestAnnouncementSerializer, ContestAdminSerializer
 
 
 class ContestAPI(APIView):
-    @validate_serializer(CreateConetestSeriaizer)
     def post(self, request):
+        self.serializer_class = CreateConetestSeriaizer
         data = request.data
         data["start_time"] = dateutil.parser.parse(data["start_time"])
         data["end_time"] = dateutil.parser.parse(data["end_time"])
@@ -40,8 +40,8 @@ class ContestAPI(APIView):
         contest = Contest.objects.create(**data)
         return self.success(ContestAdminSerializer(contest).data)
 
-    @validate_serializer(EditConetestSeriaizer)
     def put(self, request):
+        self.serializer_class = EditConetestSeriaizer
         data = request.data
         try:
             contest = Contest.objects.get(id=data.pop("id"))
@@ -89,8 +89,8 @@ class ContestAPI(APIView):
 
 
 class ContestAnnouncementAPI(APIView):
-    @validate_serializer(CreateContestAnnouncementSerializer)
     def post(self, request):
+        self.serializer_class = CreateContestAnnouncementSerializer
         """
         Create one contest_announcement.
         """
@@ -105,8 +105,8 @@ class ContestAnnouncementAPI(APIView):
         announcement = ContestAnnouncement.objects.create(**data)
         return self.success(ContestAnnouncementSerializer(announcement).data)
 
-    @validate_serializer(EditContestAnnouncementSerializer)
     def put(self, request):
+        self.serializer_class = EditContestAnnouncementSerializer
         """
         update contest_announcement
         """
@@ -180,8 +180,8 @@ class ACMContestHelper(APIView):
         return self.success(results)
 
     @check_contest_permission(check_type="ranks")
-    @validate_serializer(ACMContesHelperSerializer)
-    def put(self, request):
+    def put(self, request):  
+        self.serializer_class = ACMContesHelperSerializer
         data = request.data
         try:
             rank = ACMContestRank.objects.get(pk=data["rank_id"])

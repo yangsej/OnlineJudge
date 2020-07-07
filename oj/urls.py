@@ -20,7 +20,7 @@ urlpatterns = [
     re_path(r"^api/", include("submission.urls.oj")),
     re_path(r"^api/admin/", include("submission.urls.admin")),
     re_path(r"^api/admin/", include("utils.urls")),
-    re_path(r'^api-auth/', include('rest_framework.urls'))
+    re_path(r'^api-auth/', include('rest_framework.urls'), 'rest_framework')
 ]
 
 schema_view = get_schema_view(
@@ -32,10 +32,10 @@ schema_view = get_schema_view(
         contact=openapi.Contact(email="contact@snippets.local"),
         license=openapi.License(name="BSD License"),
     ),
-    # validators=["flex"],
+    validators=["flex"],
     public=True,
     permission_classes=(permissions.AllowAny,),
-    patterns=urlpatterns,
+    # patterns=urlpatterns,
 )
 
 schema_urls = [

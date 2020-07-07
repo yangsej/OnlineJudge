@@ -5,7 +5,8 @@ import logging
 from django.http import HttpResponse, QueryDict
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import View
+# from django.views.generic import View
+from rest_framework import views, generics
 
 logger = logging.getLogger("")
 
@@ -50,7 +51,7 @@ class JSONResponse(object):
         return resp
 
 
-class APIView(View):
+class APIView(views.APIView):
     """
     Django view의 부모 클래스는 기본적으로 django-rest-framework와 동일합니다.
      - 구문 분석 후 json 또는 urlencoded 데이터를 얻기위한 request.data, dict 유형
@@ -165,7 +166,7 @@ class CSRFExemptAPIView(APIView):
 
 def validate_serializer(serializer):
     """
-    @validate_serializer(TestSerializer)
+    @validate_serializer(TestSerializer)\n
     def post(self, request):
         return self.success(request.data)
     """
