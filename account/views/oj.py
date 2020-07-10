@@ -180,12 +180,9 @@ class UserLoginAPI(APIView):
         """
         User login api
         """
-        
         data = request.data
         serializer = UserLoginSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-        else:
+        if not serializer.is_valid():
             return self.error("Invalid Inputs")
         user = auth.authenticate(username=data["username"], password=data["password"])
         # None is returned if username or password is wrong
@@ -238,16 +235,19 @@ class UserRegisterAPI(APIView):
         """
         User register api
         """
-        self.serializer_class = UserRegisterSerializer
+        serializer = UserRegisterSerializer(data=request.data)
         if not SysOptions.allow_register:
             return self.error("Register function has been disabled by admin")
 
-        data = request.data
+        if not serializer.is_valid():
+            return self.error("Invalid inputs")
+        
+        data = serializer.data
         data["username"] = data["username"].lower()
         data["email"] = data["email"].lower()
-        captcha = Captcha(request)
-        if not captcha.check(data["captcha"]):
-            return self.error("Invalid captcha")
+        # captcha = Captcha(request)
+        # if not captcha.check(data["captcha"]):
+        #     return self.error("Invalid captcha")
         if User.objects.filter(username=data["username"]).exists():
             return self.error("Username already exists")
         if User.objects.filter(email=data["email"]).exists():
