@@ -113,9 +113,9 @@ class APIView(views.APIView):
 
     def paginate_data(self, request, query_set, object_serializer=None):
         """
-        :param request: django의 request
-        :param query_set: django model의 query set 또는 다른 list like objects
-        :param object_serializer: query set for serialization, if None, then slice the query set directly
+        :param request: django의 request\n
+        :param query_set: django model의 query set 또는 다른 list like objects\n
+        :param object_serializer: query set for serialization, if None, then slice the query set directly\n
         :return:
         """
         try:
