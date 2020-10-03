@@ -205,7 +205,10 @@ class UsernameOrEmailCheck(APIView):
             result["email"] = User.objects.filter(email=data["email"].lower()).exists()
         return self.success(result)
 
+# from django.views.decorators.csrf import csrf_exempt
+# from django.utils.decorators import method_decorator
 
+# @method_decorator(csrf_exempt, name='dispatch')
 class UserRegisterAPI(APIView):
     @validate_serializer(UserRegisterSerializer)
     def post(self, request):
@@ -218,9 +221,9 @@ class UserRegisterAPI(APIView):
         data = request.data
         data["username"] = data["username"].lower()
         data["email"] = data["email"].lower()
-        captcha = Captcha(request)
-        if not captcha.check(data["captcha"]):
-            return self.error("Invalid captcha")
+        # captcha = Captcha(request)
+        # if not captcha.check(data["captcha"]):
+            # return self.error("Invalid captcha")
         if User.objects.filter(username=data["username"]).exists():
             return self.error("Username already exists")
         if User.objects.filter(email=data["email"]).exists():

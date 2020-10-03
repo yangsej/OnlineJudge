@@ -22,6 +22,6 @@ REDIS_CONF = {
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["192.168.0.1", "192.168.0.6", "dofh.iptime.org"]
 
 DATA_DIR = f"{BASE_DIR}/data"
