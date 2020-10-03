@@ -19,13 +19,26 @@ from utils.captcha import Captcha
 from utils.shortcuts import rand_str, img2base64, datetime2str
 from ..decorators import login_required
 from ..models import User, UserProfile, AdminType
-from ..serializers import (ApplyResetPasswordSerializer, ResetPasswordSerializer,
-                           UserChangePasswordSerializer, UserLoginSerializer,
-                           UserRegisterSerializer, UsernameOrEmailCheckSerializer,
-                           RankInfoSerializer, UserChangeEmailSerializer, SSOSerializer)
-from ..serializers import (TwoFactorAuthCodeSerializer, UserProfileSerializer,
-                           EditUserProfileSerializer, ImageUploadForm)
+from ..serializers import (
+    ApplyResetPasswordSerializer,
+    ResetPasswordSerializer,
+    UserChangePasswordSerializer,
+    UserLoginSerializer,
+    UserRegisterSerializer,
+    UsernameOrEmailCheckSerializer,
+    RankInfoSerializer,
+    UserChangeEmailSerializer,
+    SSOSerializer,
+)
+from ..serializers import (
+    TwoFactorAuthCodeSerializer,
+    UserProfileSerializer,
+    EditUserProfileSerializer,
+    ImageUploadForm,
+)
 from ..tasks import send_email_async
+
+from drf_yasg.utils import swagger_auto_schema
 
 
 class UserProfileAPI(APIView):
@@ -48,17 +61,21 @@ class UserProfileAPI(APIView):
                 show_real_name = True
         except User.DoesNotExist:
             return self.error("User does not exist")
-        return self.success(UserProfileSerializer(user.userprofile, show_real_name=show_real_name).data)
+        return self.success(
+            UserProfileSerializer(user.userprofile, show_real_name=show_real_name).data
+        )
 
-    @validate_serializer(EditUserProfileSerializer)
     @login_required
     def put(self, request):
+        self.serializer_class = EditUserProfileSerializer
         data = request.data
         user_profile = request.user.userprofile
         for k, v in data.items():
             setattr(user_profile, k, v)
         user_profile.save()
-        return self.success(UserProfileSerializer(user_profile, show_real_name=True).data)
+        return self.success(
+            UserProfileSerializer(user_profile, show_real_name=True).data
+        )
 
 
 class AvatarUploadAPI(APIView):
@@ -102,12 +119,16 @@ class TwoFactorAuthAPI(APIView):
         user.save()
 
         label = f"{SysOptions.website_name_shortcut}:{user.username}"
-        image = qrcode.make(OtpAuth(token).to_uri("totp", label, SysOptions.website_name.replace(" ", "")))
+        image = qrcode.make(
+            OtpAuth(token).to_uri(
+                "totp", label, SysOptions.website_name.replace(" ", "")
+            )
+        )
         return self.success(img2base64(image))
 
     @login_required
-    @validate_serializer(TwoFactorAuthCodeSerializer)
     def post(self, request):
+        self.serializer_class = TwoFactorAuthCodeSerializer
         """
         Open 2FA
         """
@@ -121,8 +142,8 @@ class TwoFactorAuthAPI(APIView):
             return self.error("Invalid code")
 
     @login_required
-    @validate_serializer(TwoFactorAuthCodeSerializer)
     def put(self, request):
+        self.serializer_class = TwoFactorAuthCodeSerializer
         code = request.data["code"]
         user = request.user
         if not user.two_factor_auth:
@@ -136,8 +157,8 @@ class TwoFactorAuthAPI(APIView):
 
 
 class CheckTFARequiredAPI(APIView):
-    @validate_serializer(UsernameOrEmailCheckSerializer)
     def post(self, request):
+        self.serializer_class = UsernameOrEmailCheckSerializer
         """
         Check TFA is required
         """
@@ -153,12 +174,16 @@ class CheckTFARequiredAPI(APIView):
 
 
 class UserLoginAPI(APIView):
-    @validate_serializer(UserLoginSerializer)
+    # queryset = User.objects.all()
+    @swagger_auto_schema(request_body=UserLoginSerializer)
     def post(self, request):
         """
         User login api
         """
         data = request.data
+        serializer = UserLoginSerializer(data=request.data)
+        if not serializer.is_valid():
+            return self.error("Invalid Inputs")
         user = auth.authenticate(username=data["username"], password=data["password"])
         # None is returned if username or password is wrong
         if user:
@@ -188,19 +213,18 @@ class UserLogoutAPI(APIView):
 
 
 class UsernameOrEmailCheck(APIView):
-    @validate_serializer(UsernameOrEmailCheckSerializer)
     def post(self, request):
         """
         check username or email is duplicate
         """
+        self.serializer_class = UsernameOrEmailCheckSerializer
         data = request.data
         # True means already exist.
-        result = {
-            "username": False,
-            "email": False
-        }
+        result = {"username": False, "email": False}
         if data.get("username"):
-            result["username"] = User.objects.filter(username=data["username"].lower()).exists()
+            result["username"] = User.objects.filter(
+                username=data["username"].lower()
+            ).exists()
         if data.get("email"):
             result["email"] = User.objects.filter(email=data["email"].lower()).exists()
         return self.success(result)
@@ -210,20 +234,23 @@ class UsernameOrEmailCheck(APIView):
 
 # @method_decorator(csrf_exempt, name='dispatch')
 class UserRegisterAPI(APIView):
-    @validate_serializer(UserRegisterSerializer)
     def post(self, request):
         """
         User register api
         """
+        serializer = UserRegisterSerializer(data=request.data)
         if not SysOptions.allow_register:
             return self.error("Register function has been disabled by admin")
 
-        data = request.data
+        if not serializer.is_valid():
+            return self.error("Invalid inputs")
+        
+        data = serializer.data
         data["username"] = data["username"].lower()
         data["email"] = data["email"].lower()
         # captcha = Captcha(request)
         # if not captcha.check(data["captcha"]):
-            # return self.error("Invalid captcha")
+        #     return self.error("Invalid captcha")
         if User.objects.filter(username=data["username"]).exists():
             return self.error("Username already exists")
         if User.objects.filter(email=data["email"]).exists():
@@ -236,11 +263,13 @@ class UserRegisterAPI(APIView):
 
 
 class UserChangeEmailAPI(APIView):
-    @validate_serializer(UserChangeEmailSerializer)
     @login_required
     def post(self, request):
+        self.serializer_class = UserChangeEmailSerializer
         data = request.data
-        user = auth.authenticate(username=request.user.username, password=data["password"])
+        user = auth.authenticate(
+            username=request.user.username, password=data["password"]
+        )
         if user:
             if user.two_factor_auth:
                 if "tfa_code" not in data:
@@ -258,12 +287,12 @@ class UserChangeEmailAPI(APIView):
 
 
 class UserChangePasswordAPI(APIView):
-    @validate_serializer(UserChangePasswordSerializer)
     @login_required
     def post(self, request):
         """
         User change password api
         """
+        self.serializer_class = UserChangePasswordSerializer
         data = request.data
         username = request.user.username
         user = auth.authenticate(username=username, password=data["old_password"])
@@ -281,8 +310,8 @@ class UserChangePasswordAPI(APIView):
 
 
 class ApplyResetPasswordAPI(APIView):
-    @validate_serializer(ApplyResetPasswordSerializer)
     def post(self, request):
+        self.serializer_class = ApplyResetPasswordSerializer
         if request.user.is_authenticated:
             return self.error("You have already logged in, are you kidding me? ")
         data = request.data
@@ -293,8 +322,12 @@ class ApplyResetPasswordAPI(APIView):
             user = User.objects.get(email__iexact=data["email"])
         except User.DoesNotExist:
             return self.error("User does not exist")
-        if user.reset_password_token_expire_time and 0 < int(
-                (user.reset_password_token_expire_time - now()).total_seconds()) < 20 * 60:
+        if (
+            user.reset_password_token_expire_time
+            and 0
+            < int((user.reset_password_token_expire_time - now()).total_seconds())
+            < 20 * 60
+        ):
             return self.error("You can only reset password once per 20 minutes")
         user.reset_password_token = rand_str()
         user.reset_password_token_expire_time = now() + timedelta(minutes=20)
@@ -302,21 +335,23 @@ class ApplyResetPasswordAPI(APIView):
         render_data = {
             "username": user.username,
             "website_name": SysOptions.website_name,
-            "link": f"{SysOptions.website_base_url}/reset-password/{user.reset_password_token}"
+            "link": f"{SysOptions.website_base_url}/reset-password/{user.reset_password_token}",
         }
         email_html = render_to_string("reset_password_email.html", render_data)
-        send_email_async.send(from_name=SysOptions.website_name_shortcut,
-                              to_email=user.email,
-                              to_name=user.username,
-                              # f
-                              subject="Reset your password",
-                              content=email_html)
+        send_email_async.send(
+            from_name=SysOptions.website_name_shortcut,
+            to_email=user.email,
+            to_name=user.username,
+            # f
+            subject="Reset your password",
+            content=email_html,
+        )
         return self.success("Succeeded")
 
 
 class ResetPasswordAPI(APIView):
-    @validate_serializer(ResetPasswordSerializer)
     def post(self, request):
+        self.serializer_class = ResetPasswordSerializer
         data = request.data
         captcha = Captcha(request)
         if not captcha.check(data["captcha"]):
@@ -382,10 +417,13 @@ class UserRankAPI(APIView):
         rule_type = request.GET.get("rule")
         if rule_type not in ContestRuleType.choices():
             rule_type = ContestRuleType.ACM
-        profiles = UserProfile.objects.filter(user__admin_type=AdminType.REGULAR_USER, user__is_disabled=False) \
-            .select_related("user")
+        profiles = UserProfile.objects.filter(
+            user__admin_type=AdminType.REGULAR_USER, user__is_disabled=False
+        ).select_related("user")
         if rule_type == ContestRuleType.ACM:
-            profiles = profiles.filter(submission_number__gt=0).order_by("-accepted_number", "submission_number")
+            profiles = profiles.filter(submission_number__gt=0).order_by(
+                "-accepted_number", "submission_number"
+            )
         else:
             profiles = profiles.filter(total_score__gt=0).order_by("-total_score")
         return self.success(self.paginate_data(request, profiles, RankInfoSerializer))
@@ -400,7 +438,9 @@ class ProfileProblemDisplayIDRefreshAPI(APIView):
         ids = list(acm_problems.keys()) + list(oi_problems.keys())
         if not ids:
             return self.success()
-        display_ids = Problem.objects.filter(id__in=ids, visible=True).values_list("_id", flat=True)
+        display_ids = Problem.objects.filter(id__in=ids, visible=True).values_list(
+            "_id", flat=True
+        )
         id_map = dict(zip(ids, display_ids))
         for k, v in acm_problems.items():
             v["_id"] = id_map[k]
@@ -431,10 +471,17 @@ class SSOAPI(CSRFExemptAPIView):
         return self.success({"token": token})
 
     @method_decorator(csrf_exempt)
-    @validate_serializer(SSOSerializer)
     def post(self, request):
+        self.serializer_class = SSOSerializer
         try:
             user = User.objects.get(auth_token=request.data["token"])
         except User.DoesNotExist:
             return self.error("User does not exist")
-        return self.success({"username": user.username, "avatar": user.userprofile.avatar, "admin_type": user.admin_type})
+        return self.success(
+            {
+                "username": user.username,
+                "avatar": user.userprofile.avatar,
+                "admin_type": user.admin_type,
+            }
+        )
+

@@ -161,8 +161,8 @@ class TestCaseAPI(CSRFExemptAPIView, TestCaseZipProcessor):
 
 
 class CompileSPJAPI(APIView):
-    @validate_serializer(CompileSPJSerializer)
     def post(self, request):
+        self.serializer_class = CompileSPJSerializer
         data = request.data
         spj_version = rand_str(8)
         error = SPJCompiler(data["spj_code"], spj_version, data["spj_language"]).compile_spj()
@@ -198,8 +198,8 @@ class ProblemBase(APIView):
 
 class ProblemAPI(ProblemBase):
     @problem_permission_required
-    @validate_serializer(CreateProblemSerializer)
     def post(self, request):
+        self.serializer_class = CreateProblemSerializer
         data = request.data
         _id = data["_id"]
         if not _id:
@@ -252,8 +252,8 @@ class ProblemAPI(ProblemBase):
         return self.success(self.paginate_data(request, problems, ProblemAdminSerializer))
 
     @problem_permission_required
-    @validate_serializer(EditProblemSerializer)
     def put(self, request):
+        self.serializer_class = EditProblemSerializer
         data = request.data
         problem_id = data.pop("id")
 
@@ -308,8 +308,8 @@ class ProblemAPI(ProblemBase):
 
 
 class ContestProblemAPI(ProblemBase):
-    @validate_serializer(CreateContestProblemSerializer)
     def post(self, request):
+        self.serializer_class = CreateContestProblemSerializer
         data = request.data
         try:
             contest = Contest.objects.get(id=data.pop("contest_id"))
@@ -372,8 +372,8 @@ class ContestProblemAPI(ProblemBase):
             problems = problems.filter(title__contains=keyword)
         return self.success(self.paginate_data(request, problems, ProblemAdminSerializer))
 
-    @validate_serializer(EditContestProblemSerializer)
     def put(self, request):
+        self.serializer_class = EditContestProblemSerializer
         data = request.data
         user = request.user
 
@@ -438,9 +438,9 @@ class ContestProblemAPI(ProblemBase):
 
 
 class MakeContestProblemPublicAPIView(APIView):
-    @validate_serializer(ContestProblemMakePublicSerializer)
     @problem_permission_required
     def post(self, request):
+        self.serializer_class = ContestProblemMakePublicSerializer
         data = request.data
         display_id = data.get("display_id")
         if Problem.objects.filter(_id=display_id, contest_id__isnull=True).exists():
@@ -469,8 +469,8 @@ class MakeContestProblemPublicAPIView(APIView):
 
 
 class AddContestProblemAPI(APIView):
-    @validate_serializer(AddContestProblemSerializer)
     def post(self, request):
+        self.serializer_class = AddContestProblemSerializer
         data = request.data
         try:
             contest = Contest.objects.get(id=data["contest_id"])
@@ -527,8 +527,8 @@ class ExportProblemAPI(APIView):
                                arcname=f"{index}/testcase/{v['output_name']}",
                                compress_type=compression)
 
-    @validate_serializer(ExportProblemRequestSerialzier)
     def get(self, request):
+        self.serializer_class = ExportProblemRequestSerialzier
         problems = Problem.objects.filter(id__in=request.data["problem_id"])
         for problem in problems:
             if problem.contest:

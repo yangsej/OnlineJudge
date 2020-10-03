@@ -18,9 +18,9 @@ from ..serializers import ImportUserSeralizer
 
 
 class UserAdminAPI(APIView):
-    @validate_serializer(ImportUserSeralizer)
     @super_admin_required
     def post(self, request):
+        self.serializer_class = ImportUserSeralizer
         """
         Import User
         """
@@ -43,9 +43,9 @@ class UserAdminAPI(APIView):
             #    DETAIL:  Key (username)=(root11) already exists.
             return self.error(str(e).split("\n")[1])
 
-    @validate_serializer(EditUserSerializer)
     @super_admin_required
     def put(self, request):
+        self.serializer_class = EditUserSerializer
         """
         Edit user api
         """
@@ -156,9 +156,9 @@ class GenerateUserAPI(APIView):
         response["Content-Type"] = "application/xlsx"
         return response
 
-    @validate_serializer(GenerateUserSerializer)
     @super_admin_required
     def post(self, request):
+        self.serializer_class = GenerateUserSerializer
         """
         Generate User
         """

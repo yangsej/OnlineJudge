@@ -7,9 +7,9 @@ from announcement.serializers import (AnnouncementSerializer, CreateAnnouncement
 
 
 class AnnouncementAdminAPI(APIView):
-    @validate_serializer(CreateAnnouncementSerializer)
     @super_admin_required
     def post(self, request):
+        self.serializer_class = CreateAnnouncementSerializer
         """
         publish announcement
         """
@@ -20,9 +20,9 @@ class AnnouncementAdminAPI(APIView):
                                                    visible=data["visible"])
         return self.success(AnnouncementSerializer(announcement).data)
 
-    @validate_serializer(EditAnnouncementSerializer)
     @super_admin_required
     def put(self, request):
+        self.serializer_class = EditAnnouncementSerializer
         """
         edit announcement
         """
