@@ -199,6 +199,9 @@ class ProblemBase(APIView):
 class ProblemAPI(ProblemBase):
     @problem_permission_required
     def post(self, request):
+        
+        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+        print(request.user)
         self.serializer_class = CreateProblemSerializer
         data = request.data
         _id = data["_id"]

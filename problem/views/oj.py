@@ -1,9 +1,9 @@
 import random
 from django.db.models import Q, Count
 from utils.api import APIView
-from account.decorators import check_contest_permission
+from account.decorators import problem_permission_required,check_contest_permission
 from ..models import ProblemTag, Problem, ProblemRuleType
-from ..serializers import ProblemSerializer, TagSerializer, ProblemSafeSerializer
+from ..serializers import ProblemSerializer, TagSerializer, ProblemSafeSerializer, CreateProblemSerializer
 from contest.models import ContestRuleType
 
 
@@ -20,7 +20,6 @@ class PickOneAPI(APIView):
         if count == 0:
             return self.error("No problem to pick")
         return self.success(problems[random.randint(0, count - 1)]._id)
-
 
 class ProblemAPI(APIView):
     @staticmethod
@@ -41,6 +40,60 @@ class ProblemAPI(APIView):
                 else:
                     problem["my_status"] = oi_problems_status.get(str(problem["id"]), {}).get("status")
 
+    def common_checks(self, request):
+        data = request.data
+        if data["spj"]:
+            if not data["spj_language"] or not data["spj_code"]:
+                return "Invalid spj"
+            if not data["spj_compile_ok"]:
+                return "SPJ code must be compiled successfully"
+            data["spj_version"] = hashlib.md5(
+                (data["spj_language"] + ":" + data["spj_code"]).encode("utf-8")).hexdigest()
+        else:
+            data["spj_language"] = None
+            data["spj_code"] = None
+        if data["rule_type"] == ProblemRuleType.OI:
+            total_score = 0
+            for item in data["test_case_score"]:
+                if item["score"] <= 0:
+                    return "Invalid score"
+                else:
+                    total_score += item["score"]
+            data["total_score"] = total_score
+        data["languages"] = list(data["languages"])
+
+    # @problem_permission_required
+    def post(self, request):
+        
+        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+        print(request.user)
+        print(request.headers)
+        print(request.COOKIES)
+        self.serializer_class = CreateProblemSerializer
+        data = request.data
+        _id = data["_id"]
+        if not _id:
+            return self.error("Display ID is required")
+        if Problem.objects.filter(_id=_id, contest_id__isnull=True).exists():
+            return self.error("Display ID already exists")
+
+        error_info = self.common_checks(request)
+        if error_info:
+            return self.error(error_info)
+
+        # todo check filename and score info
+        tags = data.pop("tags")
+        data["created_by"] = request.user
+        problem = Problem.objects.create(**data)
+
+        for item in tags:
+            try:
+                tag = ProblemTag.objects.get(name=item)
+            except ProblemTag.DoesNotExist:
+                tag = ProblemTag.objects.create(name=item)
+            problem.tags.add(tag)
+        return self.success(ProblemAdminSerializer(problem).data)
+        
     def get(self, request):
         # 问题详情页
         problem_id = request.GET.get("problem_id")

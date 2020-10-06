@@ -134,11 +134,12 @@ class TestCaseUploadAPITest(APITestCase):
 class ProblemAdminAPITest(APITestCase):
     def setUp(self):
         self.url = self.reverse("problem_admin_api")
-        self.create_super_admin()
+        # self.create_super_admin()
         self.data = copy.deepcopy(DEFAULT_PROBLEM_DATA)
 
     def test_create_problem(self):
         resp = self.client.post(self.url, data=self.data)
+        print(resp)
         self.assertSuccess(resp)
         return resp
 

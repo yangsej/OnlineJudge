@@ -22,6 +22,16 @@ class UserRegisterSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=64)
     # captcha = serializers.CharField()
 
+    def validate(self, data):
+        input_data = data
+        data["username"] = data["username"].lower()
+        data["email"] = data["email"].lower()
+        if User.objects.filter(username=data["username"]).exists():
+            raise serializers.ValidationError("Username already exists")
+        if User.objects.filter(email=data["email"]).exists():
+            raise serializers.ValidationError("Email already exists")
+        return input_data
+
 
 class UserChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField()

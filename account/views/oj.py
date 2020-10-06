@@ -229,10 +229,6 @@ class UsernameOrEmailCheck(APIView):
             result["email"] = User.objects.filter(email=data["email"].lower()).exists()
         return self.success(result)
 
-# from django.views.decorators.csrf import csrf_exempt
-# from django.utils.decorators import method_decorator
-
-# @method_decorator(csrf_exempt, name='dispatch')
 class UserRegisterAPI(APIView):
     def post(self, request):
         """
@@ -243,7 +239,8 @@ class UserRegisterAPI(APIView):
             return self.error("Register function has been disabled by admin")
 
         if not serializer.is_valid():
-            return self.error("Invalid inputs")
+                return self.error(serializer.errors)
+            # return self.error("Invalid inputs")
         
         data = serializer.data
         data["username"] = data["username"].lower()
@@ -251,10 +248,10 @@ class UserRegisterAPI(APIView):
         # captcha = Captcha(request)
         # if not captcha.check(data["captcha"]):
         #     return self.error("Invalid captcha")
-        if User.objects.filter(username=data["username"]).exists():
-            return self.error("Username already exists")
-        if User.objects.filter(email=data["email"]).exists():
-            return self.error("Email already exists")
+        # if User.objects.filter(username=data["username"]).exists():
+        #     return self.error("Username already exists")
+        # if User.objects.filter(email=data["email"]).exists():
+        #     return self.error("Email already exists")
         user = User.objects.create(username=data["username"], email=data["email"])
         user.set_password(data["password"])
         user.save()
