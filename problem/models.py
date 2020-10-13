@@ -47,12 +47,12 @@ class Problem(models.Model):
     output_description = RichTextField()
     # [{input: "test", output: "123"}, {input: "test123", output: "456"}]
     samples = JSONField()
-    test_case_id = models.TextField()
+    # test_case_id = models.TextField()
     # [{"input_name": "1.in", "output_name": "1.out", "score": 0}]
-    test_case_score = JSONField()
+    # test_case_score = JSONField()
     hint = RichTextField(null=True)
-    languages = JSONField()
-    template = JSONField()
+    # languages = JSONField()
+    # template = JSONField()
     create_time = models.DateTimeField(auto_now_add=True)
     # we can not use auto_now here
     last_update_time = models.DateTimeField(null=True)
@@ -62,25 +62,25 @@ class Problem(models.Model):
     # MB
     memory_limit = models.IntegerField()
     # io mode
-    io_mode = JSONField(default=_default_io_mode)
+    # io_mode = JSONField(default=_default_io_mode)
     # special judge related
-    spj = models.BooleanField(default=False)
-    spj_language = models.TextField(null=True)
-    spj_code = models.TextField(null=True)
-    spj_version = models.TextField(null=True)
-    spj_compile_ok = models.BooleanField(default=False)
-    rule_type = models.TextField()
-    visible = models.BooleanField(default=True)
-    difficulty = models.TextField()
+    # spj = models.BooleanField(default=False)
+    # spj_language = models.TextField(null=True)
+    # spj_code = models.TextField(null=True)
+    # spj_version = models.TextField(null=True)
+    # spj_compile_ok = models.BooleanField(default=False)
+    # rule_type = models.TextField()
+    # visible = models.BooleanField(default=True)
+    # difficulty = models.TextField()
     tags = models.ManyToManyField(ProblemTag)
-    source = models.TextField(null=True)
+    # source = models.TextField(null=True)
     # for OI mode
-    total_score = models.IntegerField(default=0)
-    submission_number = models.BigIntegerField(default=0)
-    accepted_number = models.BigIntegerField(default=0)
+    # total_score = models.IntegerField(default=0)
+    # submission_number = models.BigIntegerField(default=0)
+    # accepted_number = models.BigIntegerField(default=0)
     # {JudgeStatus.ACCEPTED: 3, JudgeStaus.WRONG_ANSWER: 11}, the number means count
-    statistic_info = JSONField(default=dict)
-    share_submission = models.BooleanField(default=False)
+    # statistic_info = JSONField(default=dict)
+    # share_submission = models.BooleanField(default=False)
 
     class Meta:
         db_table = "problem"

@@ -118,12 +118,13 @@ class ProblemAdminSerializer(BaseProblemSerializer):
 
 
 class ProblemSerializer(BaseProblemSerializer):
-    template = serializers.SerializerMethodField("get_public_template")
+    # template = serializers.SerializerMethodField("get_public_template")
 
     class Meta:
         model = Problem
-        exclude = ("test_case_score", "test_case_id", "visible", "is_public",
-                   "spj_code", "spj_version", "spj_compile_ok")
+        fields = "__all__"
+        # exclude = ("test_case_score", "test_case_id", "visible", "is_public",
+        #            "spj_code", "spj_version", "spj_compile_ok")
 
 
 class ProblemSafeSerializer(BaseProblemSerializer):

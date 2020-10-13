@@ -3,7 +3,7 @@ from django.db.models import Q, Count
 from utils.api import APIView
 from account.decorators import problem_permission_required,check_contest_permission
 from ..models import ProblemTag, Problem, ProblemRuleType
-from ..serializers import ProblemSerializer, TagSerializer, ProblemSafeSerializer, CreateProblemSerializer
+from ..serializers import ProblemSerializer, TagSerializer, ProblemSafeSerializer, CreateProblemSerializer, ProblemAdminSerializer
 from contest.models import ContestRuleType
 
 
@@ -35,9 +35,9 @@ class ProblemAPI(APIView):
             else:
                 problems = [queryset_values, ]
             for problem in problems:
-                if problem["rule_type"] == ProblemRuleType.ACM:
-                    problem["my_status"] = acm_problems_status.get(str(problem["id"]), {}).get("status")
-                else:
+                # if problem["rule_type"] == ProblemRuleType.ACM:
+                    # problem["my_status"] = acm_problems_status.get(str(problem["id"]), {}).get("status")
+                # else:
                     problem["my_status"] = oi_problems_status.get(str(problem["id"]), {}).get("status")
 
     def common_checks(self, request):
@@ -64,11 +64,12 @@ class ProblemAPI(APIView):
 
     # @problem_permission_required
     def post(self, request):
-        
-        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-        print(request.user)
-        print(request.headers)
-        print(request.COOKIES)
+        # print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+        # print(request.headers)
+        # print(request.headers['Cookie'])
+        # print(request.user)
+        # print(request.body)
+
         self.serializer_class = CreateProblemSerializer
         data = request.data
         _id = data["_id"]
@@ -77,9 +78,9 @@ class ProblemAPI(APIView):
         if Problem.objects.filter(_id=_id, contest_id__isnull=True).exists():
             return self.error("Display ID already exists")
 
-        error_info = self.common_checks(request)
-        if error_info:
-            return self.error(error_info)
+        # error_info = self.common_checks(request)
+        # if error_info:
+        #     return self.error(error_info)
 
         # todo check filename and score info
         tags = data.pop("tags")
@@ -93,6 +94,7 @@ class ProblemAPI(APIView):
                 tag = ProblemTag.objects.create(name=item)
             problem.tags.add(tag)
         return self.success(ProblemAdminSerializer(problem).data)
+        # return self.success(ProblemSerializer(problem).data)
         
     def get(self, request):
         # 问题详情页
@@ -100,7 +102,7 @@ class ProblemAPI(APIView):
         if problem_id:
             try:
                 problem = Problem.objects.select_related("created_by") \
-                    .get(_id=problem_id, contest_id__isnull=True, visible=True)
+                    .get(_id=problem_id, contest_id__isnull=True)#, visible=True)
                 problem_data = ProblemSerializer(problem).data
                 self._add_problem_status(request, problem_data)
                 return self.success(problem_data)
@@ -111,7 +113,7 @@ class ProblemAPI(APIView):
         if not limit:
             return self.error("Limit is needed")
 
-        problems = Problem.objects.select_related("created_by").filter(contest_id__isnull=True, visible=True)
+        problems = Problem.objects.select_related("created_by").filter(contest_id__isnull=True)#, visible=True)
         # 按照标签筛选
         tag_text = request.GET.get("tag")
         if tag_text:
