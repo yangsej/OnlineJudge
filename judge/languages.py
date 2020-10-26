@@ -179,6 +179,6 @@ languages = [
     {"config": _cpp_lang_config, "spj": {"compile": _cpp_lang_spj_compile, "config": _cpp_lang_spj_config},
      "name": "C++", "description": "G++ 5.4", "content_type": "text/x-c++src"},
     {"config": _java_lang_config, "name": "Java", "description": "OpenJDK 1.8", "content_type": "text/x-java"},
-    {"config": _py2_lang_config, "name": "Python2", "description": "Python 2.7", "content_type": "text/x-python"},
+    # {"config": _py2_lang_config, "name": "Python2", "description": "Python 2.7", "content_type": "text/x-python"},
     {"config": _py3_lang_config, "name": "Python3", "description": "Python 3.5", "content_type": "text/x-python"},
 ]

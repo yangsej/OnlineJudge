@@ -51,7 +51,7 @@ class Problem(models.Model):
     # [{"input_name": "1.in", "output_name": "1.out", "score": 0}]
     # test_case_score = JSONField()
     hint = RichTextField(null=True)
-    # languages = JSONField()
+    languages = JSONField()
     # template = JSONField()
     create_time = models.DateTimeField(auto_now_add=True)
     # we can not use auto_now here
@@ -70,7 +70,7 @@ class Problem(models.Model):
     # spj_version = models.TextField(null=True)
     # spj_compile_ok = models.BooleanField(default=False)
     # rule_type = models.TextField()
-    # visible = models.BooleanField(default=True)
+    visible = models.BooleanField(default=True)
     # difficulty = models.TextField()
     tags = models.ManyToManyField(ProblemTag)
     # source = models.TextField(null=True)
@@ -80,7 +80,7 @@ class Problem(models.Model):
     # accepted_number = models.BigIntegerField(default=0)
     # {JudgeStatus.ACCEPTED: 3, JudgeStaus.WRONG_ANSWER: 11}, the number means count
     # statistic_info = JSONField(default=dict)
-    # share_submission = models.BooleanField(default=False)
+    share_submission = models.BooleanField(default=False)
 
     class Meta:
         db_table = "problem"

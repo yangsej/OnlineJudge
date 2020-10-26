@@ -58,15 +58,15 @@ class SubmissionAPI(APIView):
             if not contest.problem_details_permission(request.user):
                 hide_id = True
 
-        if data.get("captcha"):
-            if not Captcha(request).check(data["captcha"]):
-                return self.error("Invalid captcha")
+        # if data.get("captcha"):
+        #     if not Captcha(request).check(data["captcha"]):
+        #         return self.error("Invalid captcha")
         error = self.throttling(request)
         if error:
             return self.error(error)
 
         try:
-            problem = Problem.objects.get(id=data["problem_id"], contest_id=data.get("contest_id"), visible=True)
+            problem = Problem.objects.get(id=data["problem_id"], contest_id=data.get("contest_id"))#, visible=True)
         except Problem.DoesNotExist:
             return self.error("Problem not exist")
         if data["language"] not in problem.languages:
@@ -98,7 +98,8 @@ class SubmissionAPI(APIView):
         if not submission.check_user_permission(request.user):
             return self.error("No permission for this submission")
 
-        if submission.problem.rule_type == ProblemRuleType.OI or request.user.is_admin_role():
+        if request.user.is_admin_role():
+        # if submission.problem.rule_type == ProblemRuleType.OI or request.user.is_admin_role():
             submission_data = SubmissionModelSerializer(submission).data
         else:
             submission_data = SubmissionSafeModelSerializer(submission).data
