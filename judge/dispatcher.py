@@ -137,6 +137,7 @@ class JudgeDispatcher(DispatcherBase):
             code = f"{template['prepend']}\n{self.submission.code}\n{template['append']}"
         else:
             code = self.submission.code
+        code = self.submission.code
 
         data = {
             "language_config": sub_config["config"],
@@ -158,7 +159,7 @@ class JudgeDispatcher(DispatcherBase):
                 cache.lpush(CacheKey.waiting_queue, json.dumps(data))
                 return
             Submission.objects.filter(id=self.submission.id).update(result=JudgeStatus.JUDGING)
-            resp = self._request(urljoin(server.service_url, "/judge"), data=data)
+            resp = self._request(urljoin("http://" + server.service_url, "/judge"), data=data)
 
         if not resp:
             Submission.objects.filter(id=self.submission.id).update(result=JudgeStatus.SYSTEM_ERROR)

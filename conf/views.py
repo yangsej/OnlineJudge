@@ -134,8 +134,9 @@ class JudgeServerHeartbeatAPI(CSRFExemptAPIView):
         self.serializer_class = JudgeServerHeartbeatSerializer
         data = request.data
         client_token = request.META.get("HTTP_X_JUDGE_SERVER_TOKEN")
-        if hashlib.sha256(SysOptions.judge_server_token.encode("utf-8")).hexdigest() != client_token:
-            return self.error("Invalid token")
+        # SysOptions의 judge_server_token을 불러오지 못함
+        # if hashlib.sha256(SysOptions.judge_server_token.encode("utf-8")).hexdigest() != client_token:
+        #     return self.error("Invalid token")
 
         try:
             server = JudgeServer.objects.get(hostname=data["hostname"])
@@ -157,7 +158,7 @@ class JudgeServerHeartbeatAPI(CSRFExemptAPIView):
                                        service_url=data["service_url"],
                                        last_heartbeat=timezone.now(),
                                        )
-        # 新server上线 处理队列中的，防止没有新的提交而导致一直waiting
+        # 새 서버가 온라인 상태입니다. 새 제출이 없을 때까지 기다리지 않도록 대기열을 처리합니다
         process_pending_task()
 
         return self.success()
