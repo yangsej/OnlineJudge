@@ -47,9 +47,9 @@ class Problem(models.Model):
     output_description = RichTextField()
     # [{input: "test", output: "123"}, {input: "test123", output: "456"}]
     samples = JSONField()
-    test_case_id = models.TextField(default=0) # 몰라서 default=0
+    test_case_id = models.TextField()
     # [{"input_name": "1.in", "output_name": "1.out", "score": 0}]
-    test_case_score = JSONField(default=dict) # 몰라서 default=dict
+    test_case_score = JSONField()
     hint = RichTextField(null=True)
     languages = JSONField()
     template = JSONField(default=dict) # 몰라서 default=dict

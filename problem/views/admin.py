@@ -129,6 +129,7 @@ class TestCaseAPI(CSRFExemptAPIView, TestCaseZipProcessor):
             ensure_created_by(problem, request.user)
 
         test_case_dir = os.path.join(settings.TEST_CASE_DIR, problem.test_case_id)
+        print(test_case_dir)
         if not os.path.isdir(test_case_dir):
             return self.error("Test case does not exists")
         name_list = self.filter_name_list(os.listdir(test_case_dir), problem.spj)
@@ -151,7 +152,7 @@ class TestCaseAPI(CSRFExemptAPIView, TestCaseZipProcessor):
             file = form.cleaned_data["file"]
         else:
             return self.error("Upload failed")
-        zip_file = f"/tmp/{rand_str()}.zip"
+        zip_file = f"./tmp/{rand_str()}.zip"
         with open(zip_file, "wb") as f:
             for chunk in file:
                 f.write(chunk)

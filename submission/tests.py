@@ -6,14 +6,17 @@ from utils.api.tests import APITestCase
 from .models import Submission
 
 DEFAULT_PROBLEM_DATA = {"_id": "A-110", "title": "test", "description": "<p>test</p>", "input_description": "test",
-                        "output_description": "test", "time_limit": 1000, "memory_limit": 256, "difficulty": "Low",
-                        "visible": True, "tags": ["test"], "languages": ["C", "C++", "Java", "Python2"], "template": {},
-                        "samples": [{"input": "test", "output": "test"}], "spj": False, "spj_language": "C",
-                        "spj_code": "", "test_case_id": "499b26290cc7994e0b497212e842ea85",
-                        "test_case_score": [{"output_name": "1.out", "input_name": "1.in", "output_size": 0,
-                                             "stripped_output_md5": "d41d8cd98f00b204e9800998ecf8427e",
-                                             "input_size": 0, "score": 0}],
-                        "rule_type": "ACM", "hint": "<p>test</p>", "source": "test"}
+                        "output_description": "test", "time_limit": 1000, "memory_limit": 256,
+                        # "difficulty": "Low",
+                        "visible": True, "tags": ["test"], "languages": ["C", "C++", "Java", "Python2"],
+                        # "template": {},
+                        "samples": [{"input": "test", "output": "test"}],
+                        # "spj": False, "spj_language": "C", "spj_code": "", # "test_case_id": "499b26290cc7994e0b497212e842ea85",
+                        # "test_case_score": [{"output_name": "1.out", "input_name": "1.in", "output_size": 0,
+                        #                      "stripped_output_md5": "d41d8cd98f00b204e9800998ecf8427e",
+                        #                      "input_size": 0, "score": 0}],
+                        # "rule_type": "ACM", "hint": "<p>test</p>", "source": "test"
+                        }
 
 DEFAULT_SUBMISSION_DATA = {
     "problem_id": "1",

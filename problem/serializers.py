@@ -52,8 +52,8 @@ class CreateOrEditProblemSerializer(serializers.Serializer):
     input_description = serializers.CharField()
     output_description = serializers.CharField()
     samples = serializers.ListField(child=CreateSampleSerializer(), allow_empty=False)
-    # test_case_id = serializers.CharField(max_length=32)
-    # test_case_score = serializers.ListField(child=CreateTestCaseScoreSerializer(), allow_empty=True)
+    test_case_id = serializers.CharField(max_length=32)
+    test_case_score = serializers.ListField(child=CreateTestCaseScoreSerializer(), allow_empty=True)
     time_limit = serializers.IntegerField(min_value=1, max_value=1000 * 60)
     memory_limit = serializers.IntegerField(min_value=1, max_value=1024)
     languages = LanguageNameMultiChoiceField()
@@ -118,13 +118,13 @@ class ProblemAdminSerializer(BaseProblemSerializer):
 
 
 class ProblemSerializer(BaseProblemSerializer):
-    # template = serializers.SerializerMethodField("get_public_template")
+    template = serializers.SerializerMethodField("get_public_template")
 
     class Meta:
         model = Problem
-        fields = "__all__"
-        # exclude = ("test_case_score", "test_case_id", "visible", "is_public",
-        #            "spj_code", "spj_version", "spj_compile_ok")
+        # fields = "__all__"
+        exclude = ("test_case_score", "test_case_id", "visible", "is_public",
+                   "spj_code", "spj_version", "spj_compile_ok")
 
 
 class ProblemSafeSerializer(BaseProblemSerializer):
