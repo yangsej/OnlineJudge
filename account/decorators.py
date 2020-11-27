@@ -138,8 +138,8 @@ def check_contest_permission(check_type="details"):
 
 def ensure_created_by(obj, user):
     e = APIError(msg=f"{obj.__class__.__name__} does not exist")
-    if not user.is_admin_role():
-        raise e
+    # if not user.is_admin_role():
+    #     raise e
     if user.is_super_admin():
         return
     if isinstance(obj, Problem):

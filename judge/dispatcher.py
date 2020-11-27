@@ -102,7 +102,7 @@ class JudgeDispatcher(DispatcherBase):
             self.problem = Problem.objects.get(id=problem_id)
 
     def _compute_statistic_info(self, resp_data):
-        # 用时和内存占用保存为多个测试点中最长的那个
+        # 시간과 메모리 사용량은 여러 테스트 포인트 중에서 가장 오래 저장됩니다.
         self.submission.statistic_info["time_cost"] = max([x["cpu_time"] for x in resp_data])
         self.submission.statistic_info["memory_cost"] = max([x["memory"] for x in resp_data])
 
@@ -145,7 +145,7 @@ class JudgeDispatcher(DispatcherBase):
             "max_cpu_time": self.problem.time_limit,
             "max_memory": 1024 * 1024 * self.problem.memory_limit,
             "test_case_id": self.problem.test_case_id,
-            "output": False,
+            "output": True,
             "spj_version": self.problem.spj_version,
             "spj_config": spj_config.get("config"),
             "spj_compile_config": spj_config.get("compile"),

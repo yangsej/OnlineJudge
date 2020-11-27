@@ -15,6 +15,8 @@ from django.conf import settings
 from utils.shortcuts import rand_str, natural_sort_key
 from django.http import StreamingHttpResponse
 
+import shutil
+
 class TestCaseZipProcessor(object):
     def process_zip(self, uploaded_zip_file, spj, dir=""):
         try:
@@ -172,9 +174,9 @@ class ProblemAPI(APIView):
             else:
                 problems = [queryset_values, ]
             for problem in problems:
-                # if problem["rule_type"] == ProblemRuleType.ACM:
-                    # problem["my_status"] = acm_problems_status.get(str(problem["id"]), {}).get("status")
-                # else:
+                if problem["rule_type"] == ProblemRuleType.ACM:
+                    problem["my_status"] = acm_problems_status.get(str(problem["id"]), {}).get("status")
+                else:
                     problem["my_status"] = oi_problems_status.get(str(problem["id"]), {}).get("status")
 
     def common_checks(self, request):
@@ -201,12 +203,6 @@ class ProblemAPI(APIView):
 
     # @problem_permission_required
     def post(self, request):
-        # print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-        # print(request.headers)
-        # print(request.headers['Cookie'])
-        # print(request.user)
-        # print(request.body)
-
         self.serializer_class = CreateProblemSerializer
         data = request.data
         _id = data["_id"]
@@ -215,9 +211,9 @@ class ProblemAPI(APIView):
         if Problem.objects.filter(_id=_id, contest_id__isnull=True).exists():
             return self.error("Display ID already exists")
 
-        # error_info = self.common_checks(request)
-        # if error_info:
-        #     return self.error(error_info)
+        error_info = self.common_checks(request)
+        if error_info:
+            return self.error(error_info)
 
         # todo check filename and score info
         tags = data.pop("tags")
@@ -269,6 +265,62 @@ class ProblemAPI(APIView):
         data = self.paginate_data(request, problems, ProblemSerializer)
         self._add_problem_status(request, data)
         return self.success(data)
+
+    # @problem_permission_required
+    def put(self, request):
+        self.serializer_class = EditProblemSerializer
+        data = request.data
+        problem_id = data.pop("id")
+
+        try:
+            problem = Problem.objects.get(id=problem_id)
+            ensure_created_by(problem, request.user)
+        except Problem.DoesNotExist:
+            return self.error("Problem does not exist")
+
+        _id = data["_id"]
+        if not _id:
+            return self.error("Display ID is required")
+        if Problem.objects.exclude(id=problem_id).filter(_id=_id, contest_id__isnull=True).exists():
+            return self.error("Display ID already exists")
+
+        error_info = self.common_checks(request)
+        if error_info:
+            return self.error(error_info)
+        # todo check filename and score info
+        tags = data.pop("tags")
+        data["languages"] = list(data["languages"])
+
+        for k, v in data.items():
+            setattr(problem, k, v)
+        problem.save()
+
+        problem.tags.remove(*problem.tags.all())
+        for tag in tags:
+            try:
+                tag = ProblemTag.objects.get(name=tag)
+            except ProblemTag.DoesNotExist:
+                tag = ProblemTag.objects.create(name=tag)
+            problem.tags.add(tag)
+
+        return self.success()
+
+    # @problem_permission_required
+    def delete(self, request):
+        id = int(request.GET.get("id"))
+        if not id:
+            return self.error("Invalid parameter, id is required")
+        print(id)
+        try:
+            problem = Problem.objects.get(id=id, contest_id__isnull=True)
+        except Problem.DoesNotExist:
+            return self.error("Problem does not exists")
+        ensure_created_by(problem, request.user)
+        d = os.path.join(settings.TEST_CASE_DIR, problem.test_case_id)
+        if os.path.isdir(d):
+            shutil.rmtree(d, ignore_errors=True)
+        problem.delete()
+        return self.success()
 
 
 class ContestProblemAPI(APIView):
