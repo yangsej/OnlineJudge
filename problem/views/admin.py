@@ -226,7 +226,7 @@ class ProblemAPI(ProblemBase):
             problem.tags.add(tag)
         return self.success(ProblemAdminSerializer(problem).data)
 
-    @problem_permission_required
+    # @problem_permission_required
     def get(self, request):
         problem_id = request.GET.get("id")
         rule_type = request.GET.get("rule_type")

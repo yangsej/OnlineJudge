@@ -3,7 +3,7 @@ from django.db.models import Q, Count
 from utils.api import APIView, CSRFExemptAPIView, APIError
 from account.decorators import problem_permission_required,check_contest_permission, ensure_created_by
 from ..models import ProblemTag, Problem, ProblemRuleType
-from ..serializers import ProblemSerializer, TagSerializer, ProblemSafeSerializer, CreateProblemSerializer, ProblemAdminSerializer, TestCaseUploadForm
+from ..serializers import ProblemSerializer, TagSerializer, ProblemSafeSerializer, CreateProblemSerializer, ProblemAdminSerializer, TestCaseUploadForm, EditProblemSerializer
 from contest.models import ContestRuleType
 
 import hashlib
@@ -160,7 +160,30 @@ class PickOneAPI(APIView):
             return self.error("No problem to pick")
         return self.success(problems[random.randint(0, count - 1)]._id)
 
-class ProblemAPI(APIView):
+class ProblemBase(APIView):
+    def common_checks(self, request):
+        data = request.data
+        if data["spj"]:
+            if not data["spj_language"] or not data["spj_code"]:
+                return "Invalid spj"
+            if not data["spj_compile_ok"]:
+                return "SPJ code must be compiled successfully"
+            data["spj_version"] = hashlib.md5(
+                (data["spj_language"] + ":" + data["spj_code"]).encode("utf-8")).hexdigest()
+        else:
+            data["spj_language"] = None
+            data["spj_code"] = None
+        if data["rule_type"] == ProblemRuleType.OI:
+            total_score = 0
+            for item in data["test_case_score"]:
+                if item["score"] <= 0:
+                    return "Invalid score"
+                else:
+                    total_score += item["score"]
+            data["total_score"] = total_score
+        data["languages"] = list(data["languages"])
+
+class ProblemAPI(ProblemBase):
     @staticmethod
     def _add_problem_status(request, queryset_values):
         if request.user.is_authenticated:
@@ -267,6 +290,50 @@ class ProblemAPI(APIView):
         return self.success(data)
 
     # @problem_permission_required
+    def delete(self, request):
+        id = int(request.GET.get("id"))
+        if not id:
+            return self.error("Invalid parameter, id is required")
+        try:
+            problem = Problem.objects.get(id=id, contest_id__isnull=True)
+        except Problem.DoesNotExist:
+            return self.error("Problem does not exists")
+        ensure_created_by(problem, request.user)
+        d = os.path.join(settings.TEST_CASE_DIR, problem.test_case_id)
+        if os.path.isdir(d):
+            shutil.rmtree(d, ignore_errors=True)
+        problem.delete()
+        return self.success()
+
+class ProblemEditAPI(ProblemBase):
+    # @problem_permission_required
+    def get(self, request):
+        problem_id = request.GET.get("id")
+        rule_type = request.GET.get("rule_type")
+        user = request.user
+        if problem_id:
+            try:
+                problem = Problem.objects.get(id=problem_id)
+                ensure_created_by(problem, user)
+                return self.success(ProblemAdminSerializer(problem).data)
+            except Problem.DoesNotExist:
+                return self.error("Problem does not exist")
+
+        problems = Problem.objects.filter(contest_id__isnull=True).order_by("-create_time")
+        if rule_type:
+            if rule_type not in ProblemRuleType.choices():
+                return self.error("Invalid rule_type")
+            else:
+                problems = problems.filter(rule_type=rule_type)
+
+        keyword = request.GET.get("keyword", "").strip()
+        if keyword:
+            problems = problems.filter(Q(title__icontains=keyword) | Q(_id__icontains=keyword))
+        if not user.can_mgmt_all_problem():
+            problems = problems.filter(created_by=user)
+        return self.success(self.paginate_data(request, problems, ProblemAdminSerializer))
+
+    # @problem_permission_required
     def put(self, request):
         self.serializer_class = EditProblemSerializer
         data = request.data
@@ -303,23 +370,6 @@ class ProblemAPI(APIView):
                 tag = ProblemTag.objects.create(name=tag)
             problem.tags.add(tag)
 
-        return self.success()
-
-    # @problem_permission_required
-    def delete(self, request):
-        id = int(request.GET.get("id"))
-        if not id:
-            return self.error("Invalid parameter, id is required")
-        print(id)
-        try:
-            problem = Problem.objects.get(id=id, contest_id__isnull=True)
-        except Problem.DoesNotExist:
-            return self.error("Problem does not exists")
-        ensure_created_by(problem, request.user)
-        d = os.path.join(settings.TEST_CASE_DIR, problem.test_case_id)
-        if os.path.isdir(d):
-            shutil.rmtree(d, ignore_errors=True)
-        problem.delete()
         return self.success()
 
 
